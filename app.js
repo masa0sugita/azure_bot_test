@@ -39,3 +39,14 @@ function cycleTweet() {
         }
     });
 }
+app.set('port', (process.env.PORT || 5000));
+
+app.get('/', function(req, res) {
+    res.send('Hello World')
+});
+
+app.listen(app.get('port'), function() {
+    console.log("Node app is runnning at localhost:" + app.get('port'))
+});
+
+
