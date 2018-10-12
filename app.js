@@ -4,15 +4,39 @@ let Twitter = require('twitter');
 let CronJob = require("cron").CronJob;
 
 let app = express();
+let mysql = require('mysql');
+
+let connectionString = process.env.MYSQLCONNSTR_localdb;
+let host = /Data Source=([0-9\.]+)\:[0-9]+\;/g.exec(connectionString)[1];
+let port = /Data Source=[0-9\.]+\:([0-9]+)\;/g.exec(connectionString)[1];
+let database = /Database=([0-9a-zA-Z]+)\;/g.exec(connectionString)[1];
+let username = /User Id=([a-zA-z0-9\s]+)\;/g.exec(connectionString)[1];
+let password = /Password=(.*)/g.exec(connectionString)[1];
+
+let connection = mysql.createConnection({
+    // host: 'localhost',
+    // user: 'azure_bot_test',
+    // password: 'azure_bot_test',
+    // database: 'azure_bot_test'
+    host: host,
+    port: port,
+    user: username,
+    password: password,
+    database: database
+});
 
 let twitter = new Twitter({
     consumer_key: '*',
     consumer_secret: '*',
     access_token_key: '*',
     access_token_secret: '*'
+    // consumer_key: 'rsZ80FOsOWmexeum9U8T5e92o',
+    // consumer_secret: 'ZdRfoSwDlOq5I86XWNANeT6rA2Px41CqYjdDtLvltXEv8MMOdf',
+    // access_token_key: '116741549-vNKcEQ41CFu7wE3PnAIWcnWJPZIwtw2YB04eMiq6',
+    // access_token_secret: 'VAihSKde78bQHuW59g264c1h0C4S8yrae00uAVQXDJEhW'
 });
 
-let cronTime = '0 * * * * *';
+let cronTime = '0,30 * * * * *';
 new CronJob({
     cronTime: cronTime,
     onTick: function () {
@@ -21,32 +45,52 @@ new CronJob({
     start: true
 });
 
-let tipsArray = [
-    "にゃー",
-    "わんわん",
-    "おっぱい",
-];
-
+let tips = {};
 function cycleTweet() {
-    let tips = tipsArray[Math.floor(Math.random() * tipsArray.length)];
-
-    // 自動投稿 
-    twitter.post('statuses/update', {status: tips}, (err, tweet, response) => {
+    // let tips = tipsArray[Math.floor(Math.random() * tipsArray.length)];
+    connection.query('select tips from tips order by rand() limit 1', function (err, rows) {
         if (err) {
             return console.log(err);
         } else {
-            return console.log(tweet);
+            tips = {
+                'value': rows[0]['tips']
+            };
+
+            //自動投稿 
+            twitter.post('statuses/update', {status: tips}, (err, tweet, response) => {
+                if (err) {
+                    return console.log(err);
+                } else {
+                    return console.log(tweet);
+                }
+            });
         }
+    }).on('end', () => {
+        console.log(`DBから取得した値：${tips.value}`);
     });
 }
+
+
+
 app.set('port', (process.env.PORT || 5000));
 
-app.get('/', function(req, res) {
+app.get('/', function (req, res) {
     res.send('Hello World')
 });
+app.get('/bye', function (req, res) {
+    res.send('さよなら');
+});
 
-app.listen(app.get('port'), function() {
+app.get('/mysql', function (req, res) {
+    connection.query('select * from tips', function (error, results, fields) {
+        if (error) throw error;
+        res.send(results[0].tips);
+    });
+});
+
+app.listen(app.get('port'), function () {
     console.log("Node app is runnning at localhost:" + app.get('port'))
 });
+
 
 
