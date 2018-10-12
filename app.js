@@ -30,10 +30,6 @@ let twitter = new Twitter({
     consumer_secret: '*',
     access_token_key: '*',
     access_token_secret: '*'
-    // consumer_key: 'rsZ80FOsOWmexeum9U8T5e92o',
-    // consumer_secret: 'ZdRfoSwDlOq5I86XWNANeT6rA2Px41CqYjdDtLvltXEv8MMOdf',
-    // access_token_key: '116741549-vNKcEQ41CFu7wE3PnAIWcnWJPZIwtw2YB04eMiq6',
-    // access_token_secret: 'VAihSKde78bQHuW59g264c1h0C4S8yrae00uAVQXDJEhW'
 });
 
 let cronTime = '0,30 * * * * *';
