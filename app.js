@@ -6,18 +6,18 @@ let CronJob = require("cron").CronJob;
 let app = express();
 let mysql = require('mysql');
 
+if( process.env.APP_POOL_ID == undefined ){
+    require('dotenv').config();
+}
+
 let connectionString = process.env.MYSQLCONNSTR_localdb;
 let host = /Data Source=([0-9\.]+)\:[0-9]+\;/g.exec(connectionString)[1];
 let port = /Data Source=[0-9\.]+\:([0-9]+)\;/g.exec(connectionString)[1];
-let database = /Database=([0-9a-zA-Z]+)\;/g.exec(connectionString)[1];
+let database = /Database=([0-9a-zA-Z\_]+)\;/g.exec(connectionString)[1];
 let username = /User Id=([a-zA-z0-9\s]+)\;/g.exec(connectionString)[1];
 let password = /Password=(.*)/g.exec(connectionString)[1];
 
 let connection = mysql.createConnection({
-    // host: 'localhost',
-    // user: 'azure_bot_test',
-    // password: 'azure_bot_test',
-    // database: 'azure_bot_test'
     host: host,
     port: port,
     user: username,
@@ -53,7 +53,7 @@ function cycleTweet() {
             };
 
             //自動投稿 
-            twitter.post('statuses/update', {status: tips}, (err, tweet, response) => {
+            twitter.post('statuses/update', {status: tips.value}, (err, tweet, response) => {
                 if (err) {
                     return console.log(err);
                 } else {
